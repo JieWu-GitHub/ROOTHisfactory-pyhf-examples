@@ -138,7 +138,7 @@ void initializeGlobalSettings()
 // ---------------------------------------------------------
 void loadNormalizationFactors(double &mcNorm_sigmu, double &mcNorm_sigtau, double &mcNorm_D1)
 {
-    TFile q("DemoHistos.root");
+    TFile q("input/DemoHistos.root");
     TH1 *htemp = nullptr;
     TString mchistos[3] = {"sigmu", "sigtau", "D1"};
     double *mcnorms[3] = {&mcNorm_sigmu, &mcNorm_sigtau, &mcNorm_D1};
@@ -157,7 +157,7 @@ void loadNormalizationFactors(double &mcNorm_sigmu, double &mcNorm_sigtau, doubl
 // ---------------------------------------------------------
 void getQ2Binning(double &q2_low, double &q2_high, int &q2_bins)
 {
-    TFile file("DemoHistos.root");
+    TFile file("input/DemoHistos.root");
     TH3 *h_sigmu = nullptr;
     file.GetObject("h_sigmu", h_sigmu);
     assert(h_sigmu != NULL);
@@ -172,13 +172,13 @@ void getQ2Binning(double &q2_low, double &q2_high, int &q2_bins)
 // Norm = Nmu * mcNorm_sigmu
 void addSignalMuSample(Channel &chan, const AnalysisConfig &config, double mcNorm_sigmu)
 {
-    Sample sigmu("h_sigmu", "h_sigmu", "DemoHistos.root");
+    Sample sigmu("h_sigmu", "h_sigmu", "input/DemoHistos.root");
 
     if (config.useMuShapeUncerts)
     {
-        sigmu.AddHistoSys("v1mu", "h_sigmu_v1m", "DemoHistos.root", "", "h_sigmu_v1p", "DemoHistos.root", "");
-        sigmu.AddHistoSys("v2mu", "h_sigmu_v2m", "DemoHistos.root", "", "h_sigmu_v2p", "DemoHistos.root", "");
-        sigmu.AddHistoSys("v3mu", "h_sigmu_v3m", "DemoHistos.root", "", "h_sigmu_v3p", "DemoHistos.root", "");
+        sigmu.AddHistoSys("v1mu", "h_sigmu_v1m", "input/DemoHistos.root", "", "h_sigmu_v1p", "input/DemoHistos.root", "");
+        sigmu.AddHistoSys("v2mu", "h_sigmu_v2m", "input/DemoHistos.root", "", "h_sigmu_v2p", "input/DemoHistos.root", "");
+        sigmu.AddHistoSys("v3mu", "h_sigmu_v3m", "input/DemoHistos.root", "", "h_sigmu_v3p", "input/DemoHistos.root", "");
     }
 
     if (config.BBon3d)
@@ -197,13 +197,13 @@ void addSignalMuSample(Channel &chan, const AnalysisConfig &config, double mcNor
 // Norm = Nmu * RawRDst * mcNorm_sigtau
 void addSignalTauSample(Channel &chan, const AnalysisConfig &config, double mcNorm_sigtau)
 {
-    Sample sigtau("h_sigtau", "h_sigtau", "DemoHistos.root");
+    Sample sigtau("h_sigtau", "h_sigtau", "input/DemoHistos.root");
     if (config.useTauShapeUncerts)
     {
-        sigtau.AddHistoSys("v1mu", "h_sigtau_v1m", "DemoHistos.root", "", "h_sigtau_v1p", "DemoHistos.root", "");
-        sigtau.AddHistoSys("v2mu", "h_sigtau_v2m", "DemoHistos.root", "", "h_sigtau_v2p", "DemoHistos.root", "");
-        sigtau.AddHistoSys("v3mu", "h_sigtau_v3m", "DemoHistos.root", "", "h_sigtau_v3p", "DemoHistos.root", "");
-        sigtau.AddHistoSys("v4tau", "h_sigtau_v4m", "DemoHistos.root", "", "h_sigtau_v4p", "DemoHistos.root", "");
+        sigtau.AddHistoSys("v1mu", "h_sigtau_v1m", "input/DemoHistos.root", "", "h_sigtau_v1p", "input/DemoHistos.root", "");
+        sigtau.AddHistoSys("v2mu", "h_sigtau_v2m", "input/DemoHistos.root", "", "h_sigtau_v2p", "input/DemoHistos.root", "");
+        sigtau.AddHistoSys("v3mu", "h_sigtau_v3m", "input/DemoHistos.root", "", "h_sigtau_v3p", "input/DemoHistos.root", "");
+        sigtau.AddHistoSys("v4tau", "h_sigtau_v4m", "input/DemoHistos.root", "", "h_sigtau_v4p", "input/DemoHistos.root", "");
     }
     if (config.BBon3d)
         sigtau.ActivateStatError();
@@ -216,12 +216,12 @@ void addSignalTauSample(Channel &chan, const AnalysisConfig &config, double mcNo
 
 void addD1Background(Channel &chan, const AnalysisConfig &config, double mcNorm_D1)
 {
-    Sample d1mu("h_D1", "h_D1", "DemoHistos.root");
+    Sample d1mu("h_D1", "h_D1", "input/DemoHistos.root");
     if (config.BBon3d)
         d1mu.ActivateStatError();
     if (config.useDststShapeUncerts)
     {
-        d1mu.AddHistoSys("IW", "h_D1IWp", "DemoHistos.root", "", "h_D1IWm", "DemoHistos.root", "");
+        d1mu.AddHistoSys("IW", "h_D1IWp", "input/DemoHistos.root", "", "h_D1IWm", "input/DemoHistos.root", "");
     }
     d1mu.SetNormalizeByTheory(kFALSE);
     d1mu.AddNormFactor("mcNorm_D1", mcNorm_D1, 1e-9, 1.);
@@ -241,7 +241,7 @@ void addD1Background(Channel &chan, const AnalysisConfig &config, double mcNorm_
 
 void addMisIDBackground(Channel &chan, const AnalysisConfig &config)
 {
-    Sample misID("h_misID", "h_misID", "DemoHistos.root");
+    Sample misID("h_misID", "h_misID", "input/DemoHistos.root");
     if (config.BBon3d)
         misID.ActivateStatError();
     misID.SetNormalizeByTheory(kTRUE);
@@ -280,7 +280,7 @@ RooWorkspace *buildModel(
     // Create channel and set data
     Channel chan("Dstmu_kinematic");
     chan.SetStatErrorConfig(1e-5, "Poisson");
-    chan.SetData("h_data", "DemoHistos.root");
+    chan.SetData("h_data", "input/DemoHistos.root");
 
     // Add samples
     addSignalMuSample(chan, config, mcNorm_sigmu);

@@ -2,20 +2,12 @@
 Author       : Jie Wu j.wu@cern.ch
 Date         : 2025-02-09 07:31:44 +0100
 LastEditors  : Jie Wu j.wu@cern.ch
-LastEditTime : 2025-02-10 05:00:16 +0100
+LastEditTime : 2025-02-12 08:55:38 +0100
 FilePath     : HistFactDstTauDemo.py
 Description  : 
 
 Copyright (c) 2025 by everyone, All Rights Reserved. 
 '''
-
-#########################################################################
-# File Name: HistFactDstTauDemo.py
-# Author: Jie Wu
-# mail: j.wu@cern.ch
-# Created Time: Sun 09 Feb 2025 07:31:24 AM CET
-#########################################################################
-
 
 import os
 import sys
@@ -115,7 +107,7 @@ def initialize_global_settings():
 
 def load_normalization_factors():
     """Load normalization factors from DemoHistos.root"""
-    with ROOT.TFile("DemoHistos.root") as q:
+    with ROOT.TFile("input/DemoHistos.root") as q:
         mc_norms = {}
         mc_histos = ["sigmu", "sigtau", "D1"]
 
@@ -130,7 +122,7 @@ def load_normalization_factors():
 
 def get_q2_binning():
     """Get q² binning information from h_sigmu"""
-    with ROOT.TFile("DemoHistos.root") as file:
+    with ROOT.TFile("input/DemoHistos.root") as file:
         h_sigmu = file.Get("h_sigmu")
         assert h_sigmu is not None, "h_sigmu histogram not found"
 
@@ -145,12 +137,12 @@ def add_signal_mu_sample(chan, config, mc_norm_sigmu):
     """Add B0->D*munu (NORM) sample
     Norm = Nmu * mcNorm_sigmu
     """
-    sigmu = ROOT.RooStats.HistFactory.Sample("h_sigmu", "h_sigmu", "DemoHistos.root")
+    sigmu = ROOT.RooStats.HistFactory.Sample("h_sigmu", "h_sigmu", "input/DemoHistos.root")
 
     if config.useMuShapeUncerts:
-        sigmu.AddHistoSys("v1mu", "h_sigmu_v1m", "DemoHistos.root", "", "h_sigmu_v1p", "DemoHistos.root", "")
-        sigmu.AddHistoSys("v2mu", "h_sigmu_v2m", "DemoHistos.root", "", "h_sigmu_v2p", "DemoHistos.root", "")
-        sigmu.AddHistoSys("v3mu", "h_sigmu_v3m", "DemoHistos.root", "", "h_sigmu_v3p", "DemoHistos.root", "")
+        sigmu.AddHistoSys("v1mu", "h_sigmu_v1m", "input/DemoHistos.root", "", "h_sigmu_v1p", "input/DemoHistos.root", "")
+        sigmu.AddHistoSys("v2mu", "h_sigmu_v2m", "input/DemoHistos.root", "", "h_sigmu_v2p", "input/DemoHistos.root", "")
+        sigmu.AddHistoSys("v3mu", "h_sigmu_v3m", "input/DemoHistos.root", "", "h_sigmu_v3p", "input/DemoHistos.root", "")
 
     if config.BBon3d:
         sigmu.ActivateStatError()
@@ -166,13 +158,13 @@ def add_signal_tau_sample(chan, config, mc_norm_sigtau):
     """Add B0->D*taunu (SIGNAL) sample
     Norm = Nmu * RawRDst * mcNorm_sigtau
     """
-    sigtau = ROOT.RooStats.HistFactory.Sample("h_sigtau", "h_sigtau", "DemoHistos.root")
+    sigtau = ROOT.RooStats.HistFactory.Sample("h_sigtau", "h_sigtau", "input/DemoHistos.root")
 
     if config.useTauShapeUncerts:
-        sigtau.AddHistoSys("v1mu", "h_sigtau_v1m", "DemoHistos.root", "", "h_sigtau_v1p", "DemoHistos.root", "")
-        sigtau.AddHistoSys("v2mu", "h_sigtau_v2m", "DemoHistos.root", "", "h_sigtau_v2p", "DemoHistos.root", "")
-        sigtau.AddHistoSys("v3mu", "h_sigtau_v3m", "DemoHistos.root", "", "h_sigtau_v3p", "DemoHistos.root", "")
-        sigtau.AddHistoSys("v4tau", "h_sigtau_v4m", "DemoHistos.root", "", "h_sigtau_v4p", "DemoHistos.root", "")
+        sigtau.AddHistoSys("v1mu", "h_sigtau_v1m", "input/DemoHistos.root", "", "h_sigtau_v1p", "input/DemoHistos.root", "")
+        sigtau.AddHistoSys("v2mu", "h_sigtau_v2m", "input/DemoHistos.root", "", "h_sigtau_v2p", "input/DemoHistos.root", "")
+        sigtau.AddHistoSys("v3mu", "h_sigtau_v3m", "input/DemoHistos.root", "", "h_sigtau_v3p", "input/DemoHistos.root", "")
+        sigtau.AddHistoSys("v4tau", "h_sigtau_v4m", "input/DemoHistos.root", "", "h_sigtau_v4p", "input/DemoHistos.root", "")
 
     if config.BBon3d:
         sigtau.ActivateStatError()
@@ -186,13 +178,13 @@ def add_signal_tau_sample(chan, config, mc_norm_sigtau):
 
 def add_d1_background(chan, config, mc_norm_D1):
     """Add D1 background sample"""
-    d1mu = ROOT.RooStats.HistFactory.Sample("h_D1", "h_D1", "DemoHistos.root")
+    d1mu = ROOT.RooStats.HistFactory.Sample("h_D1", "h_D1", "input/DemoHistos.root")
 
     if config.BBon3d:
         d1mu.ActivateStatError()
 
     if config.useDststShapeUncerts:
-        d1mu.AddHistoSys("IW", "h_D1IWm", "DemoHistos.root", "", "h_D1IWp", "DemoHistos.root", "")
+        d1mu.AddHistoSys("IW", "h_D1IWm", "input/DemoHistos.root", "", "h_D1IWp", "input/DemoHistos.root", "")
 
     d1mu.SetNormalizeByTheory(kFALSE)
     d1mu.AddNormFactor("mcNorm_D1", mc_norm_D1, 1e-9, 1.0)
@@ -210,7 +202,7 @@ def add_d1_background(chan, config, mc_norm_D1):
 
 def add_misid_background(chan, config):
     """Add misID background sample"""
-    misID = ROOT.RooStats.HistFactory.Sample("h_misID", "h_misID", "DemoHistos.root")
+    misID = ROOT.RooStats.HistFactory.Sample("h_misID", "h_misID", "input/DemoHistos.root")
 
     if config.BBon3d:
         misID.ActivateStatError()
@@ -237,7 +229,7 @@ def build_model(config, mc_norms):
     # Create channel and set data
     chan = ROOT.RooStats.HistFactory.Channel("Dstmu_kinematic")
     chan.SetStatErrorConfig(1e-5, "Poisson")
-    chan.SetData("h_data", "DemoHistos.root")
+    chan.SetData("h_data", "input/DemoHistos.root")
 
     # Add samples
     add_signal_mu_sample(chan, config, mc_norms['sigmu'])

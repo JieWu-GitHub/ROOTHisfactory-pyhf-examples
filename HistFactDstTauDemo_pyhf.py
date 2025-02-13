@@ -2,7 +2,7 @@
 Author       : Jie Wu j.wu@cern.ch
 Date         : 2025-02-09 07:31:44 +0100
 LastEditors  : Jie Wu j.wu@cern.ch
-LastEditTime : 2025-02-12 02:09:12 +0100
+LastEditTime : 2025-02-13 09:09:01 +0100
 FilePath     : HistFactDstTauDemo_pyhf.py
 Description  : Converted to use pyhf and cabinetry instead of ROOT
 
@@ -38,6 +38,9 @@ logger = logging.getLogger(__name__)
 
 # Set verbosity to DEBUG for detailed output
 # cabinetry.set_logging()
+
+
+from utilities_pyhf import perform_fit, visualise_fit_results
 
 
 @dataclass
@@ -93,7 +96,7 @@ def reshape_nd_array(array: np.ndarray, shape: Tuple[int, ...]) -> np.ndarray:
 
 def load_histograms() -> Dict[str, np.ndarray]:
     """Load and flatten histograms from ROOT file"""
-    with uproot.open("DemoHistos.root") as f:
+    with uproot.open("input/DemoHistos.root") as f:
         histograms: Dict[str, np.ndarray] = {
             "data": flatten_nd_hist(f["h_data"]),
             "sigmu": flatten_nd_hist(f["h_sigmu"]),
@@ -287,286 +290,6 @@ def create_pyhf_workspace(
     return pyhf.Workspace(spec)
 
 
-# Get the model and data in each bin
-def get_model_and_data_in_each_bin(
-    model_pred: cabinetry.model_utils.ModelPrediction,
-    data: List[float],
-    bin_index: int,
-) -> Tuple[cabinetry.model_utils.ModelPrediction, List[float]]:
-    """Get the model and data in each bin"""
-
-    selected_yields: List[List[List[float]]] = []
-    selected_uncertainties: List[List[List[float]]] = []
-
-    # Loop over channels
-    for channel_yields, channel_uncs in zip(model_pred.model_yields, model_pred.total_stdev_model_bins):
-        channel_selected_yields = []
-        channel_selected_uncertainties = []
-
-        # Loop over samples
-        for sample_yields in channel_yields:
-            channel_selected_yields.append([sample_yields[bin_index]])
-
-        for sample_uncs in channel_uncs:
-            channel_selected_uncertainties.append([sample_uncs[bin_index]])
-
-        selected_yields.append(channel_selected_yields)
-        selected_uncertainties.append(channel_selected_uncertainties)
-
-    # Create new ModelPrediction object for the projection
-    selected_pred = cabinetry.model_utils.ModelPrediction(
-        model=model_pred.model,
-        model_yields=selected_yields,
-        total_stdev_model_bins=selected_uncertainties,
-        total_stdev_model_channels=model_pred.total_stdev_model_channels,
-        label=model_pred.label,
-    )
-
-    return selected_pred, [data[bin_index]]
-
-
-def create_projection(
-    model_pred: cabinetry.model_utils.ModelPrediction,
-    data: List[float],
-    axis: int,
-    shape: Tuple[int, ...],
-) -> Tuple[cabinetry.model_utils.ModelPrediction, List[float]]:
-    """Create projection of model prediction and data onto specified axis
-
-    Args:
-        model_pred: ModelPrediction object
-        data: list of data values
-        axis: axis to project onto (0 to ndim-1)
-        shape: original histogram shape (e.g., (40, 32, 4) for 3D)
-    """
-
-    # Convert data list to numpy array and reshape
-    data_array: np.ndarray = np.array(data)
-    data_nd: np.ndarray = data_array.reshape(shape)
-    ndim: int = len(shape)
-    axes_to_sum: Tuple[int, ...] = tuple(i for i in range(ndim) if i != axis)
-    data_proj: np.ndarray = data_nd.sum(axis=axes_to_sum)
-
-    # Project model predictions for each sample (channel, sample, bin)
-    projected_yields: List[List[List[float]]] = []
-    projected_uncertainties: List[List[List[float]]] = []
-
-    # Loop over channels
-    for channel_yields, channel_uncs in zip(model_pred.model_yields, model_pred.total_stdev_model_bins):
-        channel_proj_yields = []
-        channel_proj_uncs = []
-
-        # Loop over samples in the channel
-        for sample_yields in channel_yields:
-            sample_array = np.array(sample_yields).reshape(shape)
-            sample_proj = sample_array.sum(axis=axes_to_sum)
-            channel_proj_yields.append(sample_proj.tolist())
-
-        # Handle uncertainties for this channel
-        for sample_unc in channel_uncs:
-            unc_array = np.array(sample_unc).reshape(shape)
-            unc_proj = np.sqrt(np.sum(unc_array**2, axis=axes_to_sum))
-            channel_proj_uncs.append(unc_proj.tolist())
-
-        projected_yields.append(channel_proj_yields)
-        projected_uncertainties.append(channel_proj_uncs)
-
-    # Create new ModelPrediction object for the projection
-    proj_pred = cabinetry.model_utils.ModelPrediction(
-        model=model_pred.model,
-        model_yields=projected_yields,  # List of channels, each containing list of samples
-        total_stdev_model_bins=projected_uncertainties,  # Same structure as model_yields
-        total_stdev_model_channels=model_pred.total_stdev_model_channels,
-        label=model_pred.label,
-    )
-
-    return proj_pred, data_proj.tolist()
-
-
-def perform_fit(
-    workspace: pyhf.Workspace,
-    config: AnalysisConfig,
-) -> cabinetry.fit.FitResults:
-    """Perform fit using cabinetry"""
-    model, data = cabinetry.model_utils.model_and_data(workspace)
-
-    init_pars = model.config.suggested_init()
-    par_bounds = model.config.suggested_bounds()
-    par_fixed = model.config.suggested_fixed()
-
-    fit_results = cabinetry.fit.fit(
-        model,
-        data,
-        init_pars=init_pars,
-        par_bounds=par_bounds,
-        fix_pars=par_fixed,
-        strategy=2,
-    )
-
-    # Print the fit results
-    rprint(fit_results)
-
-    for name, value, error in zip(fit_results.labels, fit_results.bestfit, fit_results.uncertainty):
-        rprint(f"{name}: {value:.4f} ± {error:.4f}")
-
-    return fit_results
-
-
-def visualise_fit_results(
-    fit_results: cabinetry.fit.FitResults,
-    workspace: pyhf.Workspace,
-    output_folder: str,
-):
-
-    # get the model and data from the workspace
-    model, data = cabinetry.model_utils.model_and_data(workspace)
-
-    # visualize the fit results
-    output_folder = Path(output_folder).resolve().as_posix()
-    Path(output_folder).mkdir(parents=True, exist_ok=True)
-
-    # save the correlation matrix
-    cabinetry.visualize.correlation_matrix(fit_results, figure_folder=output_folder, pruning_threshold=0)
-
-    # visualize pulls
-    cabinetry.visualize.pulls(fit_results, figure_folder=output_folder)
-
-    # # ranking the parameters by significance
-    # ranking_results = cabinetry.fit.ranking(model, data)
-    # cabinetry.visualize.ranking(ranking_results)
-
-    # # perform the scan over the parameter of interest
-    # scan_results = cabinetry.fit.scan(model, data, par_name='RawRDst')
-    # cabinetry.visualize.scan(scan_results)
-
-    # # limit scan results
-    # limit_results = cabinetry.fit.limit(model, data)
-    # cabinetry.visualize.limit(limit_results)
-
-    # # significance results
-    # significance_results = cabinetry.fit.significance(model, data)
-    # rprint(significance_results)
-
-    # exit(1)
-
-    # visualize the distribution of the data and the fit
-    data_no_aux = workspace.data(model, include_auxdata=False)
-    model_pred_prefit = cabinetry.model_utils.prediction(model)
-
-    # for bin_index in range(len(data_no_aux)):
-    for bin_index in range(0, 2):
-
-        selected_pred, selected_data = get_model_and_data_in_each_bin(model_pred_prefit, data_no_aux, bin_index)
-
-        cabinetry.visualize.data_mc(
-            selected_pred,
-            selected_data,
-            figure_folder=f'{output_folder}/data-model-comparison/prefit/bin_{bin_index}',
-            close_figure=True,
-            log_scale=True,
-        )
-
-        cabinetry.visualize.data_mc(
-            selected_pred,
-            selected_data,
-            figure_folder=f'{output_folder}/data-model-comparison/prefit/bin_{bin_index}',
-            close_figure=True,
-            log_scale=False,
-        )
-
-    # # Create a subset of the prediction for the first 10 bins
-    # subset_pred = cabinetry.model_utils.ModelPrediction(
-    #     model=model_pred_prefit.model,
-    #     model_yields=[[yields[:10] for yields in channel] for channel in model_pred_prefit.model_yields],
-    #     total_stdev_model_bins=[[stdev[:10] for stdev in channel] for channel in model_pred_prefit.total_stdev_model_bins],
-    #     total_stdev_model_channels=model_pred_prefit.total_stdev_model_channels,
-    #     label=model_pred_prefit.label,
-    # )
-
-    # # Create subset of data for first 10 bins
-    # subset_data = data[:10]
-
-    # # Visualize the fit results for first 10 bins
-    # cabinetry.visualize.data_mc(
-    #     subset_pred,
-    #     subset_data,
-    #     figure_folder="figures/first_10_bins",
-    # )
-
-    # Create projections for each axis
-    axis_labels = [
-        (r"$m^2_{miss}$ [GeV$^2$]", "Events"),
-        (r"$E_{\mu}$ [MeV]", "Events"),
-        (r"$q^2$ [MeV$^2$]", "Events"),
-    ]
-
-    shape = (40, 32, 4)
-    # model - data comparison before fit
-    for axis, (xlabel, ylabel) in enumerate(axis_labels):
-        proj_pred, proj_data = create_projection(model_pred_prefit, data_no_aux, axis=axis, shape=shape)
-
-        # Visualize the projection
-        cabinetry.visualize.data_mc(
-            proj_pred,
-            proj_data,
-            figure_folder=f'{output_folder}/data-model-comparison/prefit/projection_axis_{axis}',
-            close_figure=True,
-            log_scale=True,
-        )
-
-        cabinetry.visualize.data_mc(
-            proj_pred,
-            proj_data,
-            figure_folder=f'{output_folder}/data-model-comparison/prefit/projection_axis_{axis}',
-            close_figure=True,
-            log_scale=False,
-        )
-
-    # model - data comparison after fit
-    model_pred_postfit = cabinetry.model_utils.prediction(model, fit_results=fit_results)
-    for axis, (xlabel, ylabel) in enumerate(axis_labels):
-        proj_pred, proj_data = create_projection(model_pred_postfit, data_no_aux, axis=axis, shape=shape)
-
-        # Visualize the projection
-        cabinetry.visualize.data_mc(
-            proj_pred,
-            proj_data,
-            figure_folder=f'{output_folder}/data-model-comparison/postfit/projection_axis_{axis}',
-            close_figure=True,
-            log_scale=True,
-        )
-
-        fig = cabinetry.visualize.data_mc(
-            proj_pred,
-            proj_data,
-            figure_folder=f'{output_folder}/data-model-comparison/postfit/projection_axis_{axis}',
-            # close_figure=True,
-            close_figure=False,
-            log_scale=False,
-        )
-
-    # Visualize the data and model comparison
-    _fig = cabinetry.visualize.data_mc(
-        model_pred_postfit,
-        data_no_aux,
-        figure_folder=f"{output_folder}/data-model-comparison/postfit/data-model-comparison",
-        close_figure=False,
-        log_scale=False,
-    )
-    # # set the figure width to 1000
-    # for i in _fig:
-
-    #     fig = i['figure']
-    #     # Get the current size in inches (width, height)
-    #     current_width, current_height = fig.get_size_inches()
-
-    #     # Apply the new width while keeping the same height
-    #     fig.set_size_inches(current_width * 2, current_height)
-
-    #     # Finally, save the figure to a file
-    #     fig.savefig(f"{output_folder}/data-model-comparison/postfit/data-model-comparison-wide.png", dpi=300, bbox_inches='tight')
-
-
 def update_main() -> Tuple[pyhf.Workspace, Optional[List[Tuple[float, float]]]]:
     """Updated main function using pyhf"""
     # Create configuration
@@ -586,7 +309,7 @@ def update_main() -> Tuple[pyhf.Workspace, Optional[List[Tuple[float, float]]]]:
     # Perform fit if requested
     result = None
     if config.doFit:
-        result = perform_fit(workspace, config)
+        result = perform_fit(workspace)
 
         if result is not None:
 

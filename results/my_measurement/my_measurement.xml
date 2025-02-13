@@ -1,0 +1,17 @@
+<!--
+This xml file created automatically on: 
+2025-2-13
+-->
+<!DOCTYPE Combination  SYSTEM 'HistFactorySchema.dtd'>
+
+<Combination OutputFilePrefix="results/my_measurement" >
+
+
+  <Input>./results/my_measurement/my_measurement_Dstmu_kinematic.xml</Input>
+
+  <Measurement Name="my_measurement" Lumi="1" LumiRelErr="0.05" ExportOnly="True"  >
+    <POI>RawRDst</POI>  
+    <ParamSetting Const="True">Lumi</ParamSetting>
+  </Measurement> 
+
+</Combination>

@@ -2,7 +2,7 @@
  * @Author       : Jie Wu j.wu@cern.ch
  * @Date         : 2025-02-12 02:06:51 +0100
  * @LastEditors  : Jie Wu j.wu@cern.ch
- * @LastEditTime : 2025-02-12 02:06:51 +0100
+ * @LastEditTime : 2025-02-13 09:21:45 +0100
  * @FilePath     : README.md
  * @Description  : 
  * 
@@ -36,11 +36,17 @@ This example includes the following scripts, which perform the **same fit** but 
 2. **`HistFactDstTauDemo.py`**  
    Uses **CERN ROOT HistFactory** in Python, mirroring the structure of the C++ script.
    Can be run by typing `python run_HistFactDstTauDemo.py` in the terminal.
+
 3. **`HistFactDstTauDemo_pyhf.py`**  
    Uses [pyhf](https://github.com/scikit-hep/pyhf) to flatten the 3D histograms into 1D, then performs the fit.  
    Also uses [cabinetry](https://github.com/scikit-hep/cabinetry) for visualization.
    Can be run by typing `python run_HistFactDstTauDemo_pyhf.py` in the terminal.
 
+4. **`HistFactDstTauDemo_pyhf_new.ipynb`**
+   In this jupyter notebook, we first flatten the 3D histograms into 1D, then perform the fit by using pyhf.
+   The model is constructed by using 
+      1. pyhf, and the fit is performed by using pyhf.
+      2. cabinetry, where the 1D flattened histograms are collected and used for the model construction.
 ---
 
 Feel free to explore these scripts as a reference for your own analyses or as a stepping stone for integrating ROOT-based workflows with pyhf.

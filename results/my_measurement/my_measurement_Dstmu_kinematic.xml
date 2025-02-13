@@ -1,0 +1,49 @@
+<!--
+This xml file created automatically on: 
+2025-2-13
+-->
+<!DOCTYPE Channel  SYSTEM 'HistFactorySchema.dtd'>  
+
+  <Channel Name="Dstmu_kinematic" InputFile="" >
+
+    <Data HistoName="h_data" InputFile="input/DemoHistos.root" HistoPath=""  /> 
+
+    <StatErrorConfig RelErrorThreshold="1e-05" ConstraintType="Poisson" /> 
+
+    <Sample Name="h_sigmu"  HistoPath=""  HistoName="h_sigmu"  InputFile="input/DemoHistos.root"  NormalizeByTheory="False" >
+      <NormFactor Name="Nmu"  Val="50000"  High="1e+06"  Low="1e-06"   /> 
+      <NormFactor Name="mcNorm_sigmu"  Val="3.1746e-06"  High="1"  Low="1e-09"   /> 
+      <HistoSys Name="v1mu"  HistoFileLow="input/DemoHistos.root"  HistoNameLow="h_sigmu_v1m"  HistoPathLow=""  HistoFileHigh="input/DemoHistos.root"  HistoNameHigh="h_sigmu_v1p"  HistoPathHigh=""   /> 
+      <HistoSys Name="v2mu"  HistoFileLow="input/DemoHistos.root"  HistoNameLow="h_sigmu_v2m"  HistoPathLow=""  HistoFileHigh="input/DemoHistos.root"  HistoNameHigh="h_sigmu_v2p"  HistoPathHigh=""   /> 
+      <HistoSys Name="v3mu"  HistoFileLow="input/DemoHistos.root"  HistoNameLow="h_sigmu_v3m"  HistoPathLow=""  HistoFileHigh="input/DemoHistos.root"  HistoNameHigh="h_sigmu_v3p"  HistoPathHigh=""   /> 
+    </Sample>
+
+
+    <Sample Name="h_sigtau"  HistoPath=""  HistoName="h_sigtau"  InputFile="input/DemoHistos.root"  NormalizeByTheory="False" >
+      <NormFactor Name="Nmu"  Val="50000"  High="1e+06"  Low="1e-06"   /> 
+      <NormFactor Name="RawRDst"  Val="0.0403349"  High="0.2"  Low="1e-06"   /> 
+      <NormFactor Name="mcNorm_sigtau"  Val="9.25955e-05"  High="1"  Low="1e-09"   /> 
+      <HistoSys Name="v1mu"  HistoFileLow="input/DemoHistos.root"  HistoNameLow="h_sigtau_v1m"  HistoPathLow=""  HistoFileHigh="input/DemoHistos.root"  HistoNameHigh="h_sigtau_v1p"  HistoPathHigh=""   /> 
+      <HistoSys Name="v2mu"  HistoFileLow="input/DemoHistos.root"  HistoNameLow="h_sigtau_v2m"  HistoPathLow=""  HistoFileHigh="input/DemoHistos.root"  HistoNameHigh="h_sigtau_v2p"  HistoPathHigh=""   /> 
+      <HistoSys Name="v3mu"  HistoFileLow="input/DemoHistos.root"  HistoNameLow="h_sigtau_v3m"  HistoPathLow=""  HistoFileHigh="input/DemoHistos.root"  HistoNameHigh="h_sigtau_v3p"  HistoPathHigh=""   /> 
+      <HistoSys Name="v4tau"  HistoFileLow="input/DemoHistos.root"  HistoNameLow="h_sigtau_v4m"  HistoPathLow=""  HistoFileHigh="input/DemoHistos.root"  HistoNameHigh="h_sigtau_v4p"  HistoPathHigh=""   /> 
+    </Sample>
+
+
+    <Sample Name="h_D1"  HistoPath=""  HistoName="h_D1"  InputFile="input/DemoHistos.root"  NormalizeByTheory="False" >
+      <OverallSys Name="BFD1"  High="1.1"  Low="0.9"   /> 
+      <NormFactor Name="mcNorm_D1"  Val="0.000112256"  High="1"  Low="1e-09"   /> 
+      <NormFactor Name="NDstst0"  Val="0.102"  High="1"  Low="1e-06"   /> 
+      <NormFactor Name="Nmu"  Val="50000"  High="1e+06"  Low="1e-06"   /> 
+      <NormFactor Name="fD1"  Val="3.2"  High="3.2"  Low="3.2"   /> 
+      <HistoSys Name="IW"  HistoFileLow="input/DemoHistos.root"  HistoNameLow="h_D1IWm"  HistoPathLow=""  HistoFileHigh="input/DemoHistos.root"  HistoNameHigh="h_D1IWp"  HistoPathHigh=""   /> 
+    </Sample>
+
+
+    <Sample Name="h_misID"  HistoPath=""  HistoName="h_misID"  InputFile="input/DemoHistos.root"  NormalizeByTheory="True" >
+      <NormFactor Name="NmisID"  Val="1"  High="100000"  Low="1e-06"   /> 
+    </Sample>
+
+
+
+  </Channel>  

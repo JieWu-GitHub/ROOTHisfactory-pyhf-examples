@@ -2,11 +2,11 @@
 Author       : Jie Wu j.wu@cern.ch
 Date         : 2025-02-09 07:31:44 +0100
 LastEditors  : Jie Wu j.wu@cern.ch
-LastEditTime : 2025-02-13 09:09:01 +0100
+LastEditTime : 2025-07-24 09:17:39 +0200
 FilePath     : HistFactDstTauDemo_pyhf.py
 Description  : Converted to use pyhf and cabinetry instead of ROOT
 
-Copyright (c) 2025 by everyone, All Rights Reserved. 
+Copyright (c) 2025 by everyone, All Rights Reserved.
 '''
 
 import os
@@ -38,7 +38,6 @@ logger = logging.getLogger(__name__)
 
 # Set verbosity to DEBUG for detailed output
 # cabinetry.set_logging()
-
 
 from utilities_pyhf import perform_fit, visualise_fit_results
 
@@ -328,5 +327,10 @@ if __name__ == "__main__":
     os.makedirs("results", exist_ok=True)
     os.makedirs("plots", exist_ok=True)
 
+    # Set the backend to pyhf
+    # pyhf.set_backend(backend="JAX", custom_optimizer="minuit", precision="64b")
+    pyhf.set_backend(backend="tensorflow", custom_optimizer="minuit", precision="64b")
+
+    # pyhf.tensor.tensorflow_backend.tensorflow_backend
     # Run the main function
     workspace, result = update_main()
